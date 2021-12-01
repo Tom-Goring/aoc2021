@@ -6,8 +6,9 @@ fn main() {
         .unwrap()
         .lines()
         .map(|l| l.parse::<i32>().unwrap())
+        .tuple_windows::<(i32, i32, i32)>()
         .tuple_windows()
-        .filter(|(first, second)| second > first)
+        .filter(|((a, b, c), (x, y, z))| a + b + c < x + y + z)
         .count();
 
     println!("{}", count);
