@@ -2,7 +2,7 @@ use itertools::Itertools;
 use std::fs;
 
 fn main() {
-    let count = fs::read_to_string("resources/day2.test")
+    let count = fs::read_to_string("resources/day2.txt")
         .unwrap()
         .lines()
         .map(|l| {
@@ -14,7 +14,6 @@ fn main() {
         .fold(
             (0, 0, 0),
             |(horizontal_position, vertical_depth, aim), (direction, magnitude): (&str, i32)| {
-                println!("{} {}", direction, magnitude);
                 match direction {
                     "forward" => (
                         horizontal_position + magnitude,
