@@ -1,6 +1,6 @@
 use std::fs;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Board {
     rows: Vec<Vec<i32>>,
     cols: Vec<Vec<i32>>,
@@ -34,6 +34,17 @@ impl Board {
     }
 }
 
+use std::fmt;
+
+impl fmt::Display for Board {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for row in self.rows.iter() {
+            write!(f, "{:?}\n", row).unwrap();
+        }
+        Ok(())
+    }
+}
+
 fn main() {
     let input = fs::read_to_string("resources/day4.txt")
         .unwrap()
@@ -46,7 +57,7 @@ fn main() {
         .map(|c| c.parse::<i32>().unwrap())
         .collect();
 
-    let boards = input
+    let mut boards: Vec<Board> = input
         .iter()
         .skip(1)
         .map(|sg| {
@@ -62,21 +73,34 @@ fn main() {
         })
         .collect::<Vec<Board>>();
 
+    println!("{}", numbers.len());
+
+    let mut winning_boards = Vec::new();
+
     for idx in 1..=numbers.len() {
-        println!("Testing with: {:?} (idx: {})", &numbers[0..idx + 1], idx);
-        if let Some(board) = boards.iter().find(|b| b.check_for_bingo(&numbers[0..idx])) {
-            println!("Board found on idx: {} - {:?}", idx, board);
-            for row in board.rows.iter() {
-                println!("{:?}", row);
-            }
-            let sum = board.unmarked_numbers(&numbers[0..idx]).iter().sum::<i32>();
-            println!(
-                "{} * {} = {}",
-                sum,
-                &numbers[idx - 1],
-                sum * &numbers[idx - 1]
-            );
-            break;
-        }
+        boards
+            .iter()
+            .filter(|b| b.check_for_bingo(&numbers[0..idx]))
+            .for_each(|b| {
+                println!("Board found on idx: {}", idx);
+                winning_boards.push((idx, b.clone()))
+            });
+        boards = boards
+            .iter()
+            .cloned()
+            .filter(|b| !b.check_for_bingo(&numbers[0..idx]))
+            .collect();
+    }
+
+    for (_, board) in winning_boards.iter() {
+        println!("{}", board);
+    }
+
+    if let Some((idx, board)) = winning_boards.last() {
+        let sum = board
+            .unmarked_numbers(&numbers[0..*idx])
+            .iter()
+            .sum::<i32>();
+        println!("{}", sum * numbers[idx - 1]);
     }
 }
