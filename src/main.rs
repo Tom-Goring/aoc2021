@@ -38,41 +38,67 @@ Multiplying the gamma rate (22) by the epsilon rate (9) produces the power consu
 Use the binary numbers in your diagnostic report to calculate the gamma rate and epsilon rate, then multiply them together. What is the power consumption of the submarine?
 (Be sure to represent your answer in decimal, not binary.)
 */
-
+#![feature(drain_filter)]
 use std::fs;
 
+use itertools::Itertools;
+
 fn main() {
-    let mut zeros = [0; 12];
-    let mut ones = [0; 12];
-    for line in fs::read_to_string("resources/day3.txt").unwrap().lines() {
-        for (idx, char) in line.chars().enumerate() {
-            match char {
-                '0' => zeros[idx] += 1,
-                '1' => ones[idx] += 1,
-                _ => unimplemented!(),
-            }
-        }
+    let bitstrings: Vec<String> = fs::read_to_string("resources/day3.txt")
+        .unwrap()
+        .lines()
+        .map(|s| String::from(s.clone()))
+        .collect();
+
+    let mut oxygen_rating = bitstrings.clone();
+    for bit in 0..bitstrings.first().unwrap().chars().count() {
+        let (most_common, _) = max(&oxygen_rating, bit);
+        oxygen_rating = oxygen_rating
+            .into_iter()
+            .filter(|bitstring| bitstring.chars().nth(bit).unwrap() == most_common)
+            .collect();
     }
 
-    let gamma = i32::from_str_radix(
-        &zeros
-            .iter()
-            .zip(ones.iter())
-            .map(|(x, y)| if x > y { '0' } else { '1' })
-            .collect::<String>(),
-        2,
-    )
-    .unwrap();
+    let mut co2_rating = bitstrings.clone();
+    for bit in 0..co2_rating.first().unwrap().chars().count() {
+        let (least_common, _) = min(&co2_rating, bit);
+        co2_rating = co2_rating
+            .into_iter()
+            .filter(|bitstring| bitstring.chars().nth(bit).unwrap() == least_common)
+            .collect();
+    }
 
-    let epsilon = i32::from_str_radix(
-        &zeros
-            .iter()
-            .zip(ones.iter())
-            .map(|(x, y)| if y > x { '0' } else { '1' })
-            .collect::<String>(),
-        2,
-    )
-    .unwrap();
+    println!("{:?}", co2_rating);
+    println!("{:?}", oxygen_rating);
 
-    println!("{}", gamma * epsilon);
+    let oxygen_rating = i32::from_str_radix(oxygen_rating.first().unwrap(), 2).unwrap();
+    let co2_rating = i32::from_str_radix(co2_rating.first().unwrap(), 2).unwrap();
+
+    println!("{}", oxygen_rating * co2_rating)
+}
+
+fn max(bitstrings: &Vec<String>, bit: usize) -> (char, usize) {
+    bitstrings
+        .iter()
+        .map(|c| c.chars().nth(bit).unwrap())
+        .into_iter()
+        .sorted()
+        .group_by(|&x| x)
+        .into_iter()
+        .map(|(key, group)| (key, group.count()))
+        .max_by_key(|&(_, count)| count)
+        .unwrap()
+}
+
+fn min(bitstrings: &Vec<String>, bit: usize) -> (char, usize) {
+    bitstrings
+        .iter()
+        .map(|c| c.chars().nth(bit).unwrap())
+        .into_iter()
+        .sorted()
+        .group_by(|&x| x)
+        .into_iter()
+        .map(|(key, group)| (key, group.count()))
+        .min_by_key(|&(_, count)| count)
+        .unwrap()
 }
