@@ -1,24 +1,21 @@
 use std::fs;
 
+use itertools::Itertools;
+
 fn main() {
-    let input = fs::read_to_string("./resources/day6.txt")
+    let input = fs::read_to_string("./resources/day7.txt")
         .expect("File not found")
         .split(',')
-        .filter_map(|s| s.parse::<usize>().ok())
-        .fold([0; 9], |mut fish_counts, count| {
-            fish_counts[count] += 1;
-            fish_counts
-        });
+        .map(|s| s.parse::<i32>().unwrap())
+        .sorted()
+        .collect::<Vec<i32>>();
 
-    let fishes = (0..256)
-        .into_iter()
-        .fold(input, |mut input, _| {
-            input.rotate_left(1);
-            input[6] += input[8];
-            input
-        })
+    let median = input[input.len() / 2];
+
+    let fuel = input
         .iter()
-        .sum::<usize>();
+        .sorted()
+        .fold(0, |fuel, pos| fuel + (pos - median).abs());
 
-    println!("{}", fishes);
+    println!("{}", fuel);
 }
