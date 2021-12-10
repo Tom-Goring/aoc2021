@@ -10,7 +10,7 @@ fn main() {
             fish_counts
         });
 
-    let fishes = (0..80)
+    let fishes = (0..256)
         .into_iter()
         .fold(input, |mut input, _| {
             input.rotate_left(1);
